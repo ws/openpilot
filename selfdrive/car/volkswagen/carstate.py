@@ -44,6 +44,7 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
     ("TSK_Fahrzeugmasse_02", "Motor_16", 0),      # Estimated vehicle mass from drivetrain coordinator
+    ("TSK_Status", "TSK_06", 0),                  # ACC engagement status from drivetrain coordinator
     ("GRA_Hauptschalter", "GRA_ACC_01", 0),       # ACC button, on/off
     ("GRA_Abbrechen", "GRA_ACC_01", 0),           # ACC button, cancel
     ("GRA_Tip_Setzen", "GRA_ACC_01", 0),          # ACC button, set
@@ -66,6 +67,7 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("ESP_05", 50),       # From J104 ABS/ESP controller
     ("ESP_21", 50),       # From J104 ABS/ESP controller
     ("Motor_20", 50),     # From J623 Engine control module
+    ("TSK_06", 50),       # From J623 Engine control module
     ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
     ("Getriebe_11", 20),  # From J743 Auto transmission control module
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
@@ -169,7 +171,7 @@ class CarState():
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
     # Update ACC radar status.
-    accStatus = cam_cp.vl["ACC_06"]['ACC_Status_ACC']
+    accStatus = cam_cp.vl["TSK_06"]['TSK_Status']
     if accStatus == 1:
       # ACC okay but disabled
       self.accFault = False
