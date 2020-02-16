@@ -49,8 +49,10 @@ def volkswagen_mqb_crc(msg, addr, len_msg):
     magic_pad = b'\xE9\x65\xAE\x6B\x7B\x35\xE5\x5F\x4E\xC7\x86\xA2\xBB\xDD\xEB\xB4'[counter]
   elif addr == MSG_HCA_01:
     magic_pad = b'\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA'[counter]
+  elif addr == MSG_GRA_ACC_01:
+    magic_pad = b'\x6A\x38\xB4\x27\x22\xEF\xE1\xBB\xF8\x80\x84\x49\xC7\x9E\x1E\x2B'[counter]
   else:
-    magic_pad = b'\x00'
+    magic_pad = None
   return volkswagen_crc_8h2f(msg_bytes[1:len_msg] + magic_pad.to_bytes(1, 'little'))
 
 class TestVolkswagenSafety(unittest.TestCase):
