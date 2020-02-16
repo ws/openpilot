@@ -51,7 +51,7 @@ def volkswagen_mqb_crc(msg, addr, len_msg):
     magic_pad = b'\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA'[counter]
   else:
     magic_pad = b'\x00'
-  return volkswagen_crc_8h2f(msg_bytes[1:len_msg] + bytes(magic_pad))
+  return volkswagen_crc_8h2f(msg_bytes[1:len_msg] + magic_pad.to_bytes(1, 'little'))
 
 class TestVolkswagenSafety(unittest.TestCase):
   @classmethod
