@@ -171,7 +171,7 @@ class CarState():
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
     # Update ACC radar status.
-    accStatus = cam_cp.vl["TSK_06"]['TSK_Status']
+    accStatus = pt_cp.vl["TSK_06"]['TSK_Status']
     if accStatus == 1:
       # ACC okay but disabled
       self.accFault = False
