@@ -24,27 +24,27 @@ def sign(a):
   else:
     return -1
 
-# Python crcmod works differently from every other CRC calculator in the planet in some subtle
-# way. The implied leading 1 on the polynomial isn't a big deal, but for some reason, we need
-# to feed it initCrc 0x00 instead of 0xFF like it should be.
+# Python crcmod works differently somehow from every other CRC calculator. The
+# implied leading 1 on the polynomial isn't a problem, but to get the right
+# result for CRC-8H2F/AUTOSAR, we have to feed it initCrc 0x00 instead of 0xFF.
 volkswagen_crc_8h2f = crcmod.mkCrcFun(0x12F, initCrc=0x00, rev=False, xorOut=0xFF)
 
 def volkswagen_mqb_crc(msg, addr, len_msg):
-  # TODO: Needs cleanup
-  msg_reversed = msg.RDLR.to_bytes(4, 'little') + msg.RDHR.to_bytes(4, 'little')
+  # This is CRC-8H2F/AUTOSAR with a twist. See the OpenDBC implementation of
+  # this algorithm for a version with explanatory comments.
+  msg_bytes = msg.RDLR.to_bytes(4, 'little') + msg.RDHR.to_bytes(4, 'little')
   counter = (msg.RDLR & 0xF00) >> 8
-  if addr == 0x9F:
+  if addr == 0x9F:     # EPS_01
     magic_pad = b'\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5'[counter]
-  elif addr == 0x120:
+  elif addr == 0x120:  # TSK_06
     magic_pad = b'\xC4\xE2\x4F\xE4\xF8\x2F\x56\x81\x9F\xE5\x83\x44\x05\x3F\x97\xDF'[counter]
-  elif addr == 0x121:
+  elif addr == 0x121:  # Motor_20
     magic_pad = b'\xE9\x65\xAE\x6B\x7B\x35\xE5\x5F\x4E\xC7\x86\xA2\xBB\xDD\xEB\xB4'[counter]
-  elif addr == 0x126:
+  elif addr == 0x126:  # HCA_01
     magic_pad = b'\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA\xDA'[counter]
-    debug = False
   else:
     magic_pad = b'\x00'
-  return volkswagen_crc_8h2f(msg_reversed[1:] + magic_pad.to_bytes(1, 'little'))
+  return volkswagen_crc_8h2f(msg_bytes[1:len_msg] + bytes(magic_pad))
 
 class TestVolkswagenSafety(unittest.TestCase):
   @classmethod
