@@ -90,7 +90,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   def _motor_2_msg(self, acc, brake):
     to_send = make_msg(0, MSG_MOTOR_2)
     to_send[0].RDLR = (0x1 << 16) if brake else 0
-    to_send[0].RDLR = (acc & 0x3) << 22
+    to_send[0].RDLR |= (acc & 0x3) << 22
     return to_send
 
   # Driver throttle input
