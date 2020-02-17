@@ -4,7 +4,8 @@ import numpy as np
 import crcmod
 from panda import Panda
 from panda.tests.safety import libpandasafety_py
-from panda.tests.safety.common import test_relay_malfunction, make_msg, test_manually_enable_controls_allowed, test_spam_can_buses
+from panda.tests.safety.common import test_relay_malfunction, make_msg, \
+  test_manually_enable_controls_allowed, test_spam_can_buses, MAX_WRONG_COUNTERS
 
 MAX_RATE_UP = 4
 MAX_RATE_DOWN = 10
