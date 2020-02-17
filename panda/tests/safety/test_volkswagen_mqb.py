@@ -325,16 +325,16 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.safety.safety_rx_hook(self._eps_01_msg(0))
     self.safety.safety_rx_hook(self._eps_01_msg(0))
 
-    self.assertEqual(-51, self.safety.get_volkswagen_torque_driver_min())
-    self.assertEqual(51, self.safety.get_volkswagen_torque_driver_max())
+    self.assertEqual(-50, self.safety.get_volkswagen_torque_driver_min())
+    self.assertEqual(50, self.safety.get_volkswagen_torque_driver_max())
 
     self.safety.safety_rx_hook(self._eps_01_msg(0))
-    self.assertEqual(1, self.safety.get_volkswagen_torque_driver_max())
-    self.assertEqual(-51, self.safety.get_volkswagen_torque_driver_min())
+    self.assertEqual(0, self.safety.get_volkswagen_torque_driver_max())
+    self.assertEqual(-50, self.safety.get_volkswagen_torque_driver_min())
 
     self.safety.safety_rx_hook(self._eps_01_msg(0))
-    self.assertEqual(1, self.safety.get_volkswagen_torque_driver_max())
-    self.assertEqual(-1, self.safety.get_volkswagen_torque_driver_min())
+    self.assertEqual(0, self.safety.get_volkswagen_torque_driver_max())
+    self.assertEqual(0, self.safety.get_volkswagen_torque_driver_min())
 
   def test_rx_hook(self):
     # checksum checks
