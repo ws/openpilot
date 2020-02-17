@@ -85,7 +85,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     to_send[0].RDHR = wheel_speed_scaled | (wheel_speed_scaled << 16)
     return to_send
 
-  # Brake light
+  # Brake light switch
   def _esp_05_msg(self, brake):
     to_send = make_msg(0, MSG_ESP_05)
     to_send[0].RDLR = (0x1 << 26) if brake else 0
