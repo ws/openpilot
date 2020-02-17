@@ -15,9 +15,11 @@ RT_INTERVAL = 250000
 DRIVER_TORQUE_ALLOWANCE = 80
 DRIVER_TORQUE_FACTOR = 3
 
-MSG_EPS_01 = 0x9F       # RX from EPS rack, driver steering torque
-MSG_TSK_06 = 0x120      # RX from ECU, ACC status from drivetrain coordinator
-MSG_MOTOR_20 = 0x121    # RX from ECU, driver throttle input
+MSG_ESP_19 = 0xB2       # RX from ABS, for wheel speeds
+MSG_EPS_01 = 0x9F       # RX from EPS, for driver steering torque
+MSG_ESP_05 = 0x106      # RX from ABS, for brake light state
+MSG_TSK_06 = 0x120      # RX from ECU, for ACC status from drivetrain coordinator
+MSG_MOTOR_20 = 0x121    # RX from ECU, for driver throttle input
 MSG_HCA_01 = 0x126      # TX by OP, Heading Control Assist steering torque
 MSG_GRA_ACC_01 = 0x12B  # TX by OP, ACC control buttons for cancel/resume
 MSG_LDW_02 = 0x397      # TX by OP, Lane line recognition and text alerts
@@ -43,6 +45,8 @@ def volkswagen_mqb_crc(msg, addr, len_msg):
   counter = (msg.RDLR & 0xF00) >> 8
   if addr == MSG_EPS_01:
     magic_pad = b'\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5'[counter]
+  elif addr == MSG_ESP_05:
+    magic_pad = b'\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07'[counter]
   elif addr == MSG_TSK_06:
     magic_pad = b'\xC4\xE2\x4F\xE4\xF8\x2F\x56\x81\x9F\xE5\x83\x44\x05\x3F\x97\xDF'[counter]
   elif addr == MSG_MOTOR_20:
@@ -62,21 +66,36 @@ class TestVolkswagenSafety(unittest.TestCase):
     cls.safety.set_safety_hooks(Panda.SAFETY_VOLKSWAGEN_MQB, 0)
     cls.safety.init_tests_volkswagen()
     cls.cnt_eps_01 = 0
-    cls.cnt_hca_01 = 0
-    cls.cnt_motor_20 = 0
+    cls.cnt_esp_05 = 0
     cls.cnt_tsk_06 = 0
+    cls.cnt_motor_20 = 0
+    cls.cnt_hca_01 = 0
     cls.cnt_gra_acc_01 = 0
 
   def _set_prev_torque(self, t):
     self.safety.set_volkswagen_desired_torque_last(t)
     self.safety.set_volkswagen_rt_torque_last(t)
 
+  def _speed_msg(self, speed):
+    wheel_speed_scaled = speed / 0.0075
+    to_send = make_msg(0, MSG_ESP_19)
+    to_send[0].RDLR = wheel_speed_scaled | (wheel_speed_scaled << 16)
+    to_send[0].RDHR = wheel_speed_scaled | (wheel_speed_scaled << 16)
+    return to_send
+
+  def _brake_msg(self, brake):
+    to_send = make_msg(0, MSG_ESP_05)
+    to_send[0].RDLR = (0x1 << 26) if brake else 0
+    to_send[0].RDLR |= (self.cnt_esp_05 % 16) << 8
+    to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_ESP_05, 8)
+    self.cnt_esp_05 += 1
+    return to_send
+
   def _torque_driver_msg(self, torque):
     to_send = make_msg(0, MSG_EPS_01)
     t = abs(torque)
     to_send[0].RDHR = ((t & 0x1FFF) << 8)
-    if torque < 0:
-      to_send[0].RDHR |= 0x1 << 23
+    to_send[0].RDHR |= (0x1 << 23) if torque < 0 else 0
     to_send[0].RDLR |= (self.cnt_eps_01 % 16) << 8
     to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_EPS_01, 8)
     self.cnt_eps_01 += 1
@@ -86,8 +105,7 @@ class TestVolkswagenSafety(unittest.TestCase):
     to_send = make_msg(0, MSG_HCA_01)
     t = abs(torque)
     to_send[0].RDLR = (t & 0xFFF) << 16
-    if torque < 0:
-      to_send[0].RDLR |= 0x1 << 31
+    to_send[0].RDHR |= (0x1 << 31) if torque < 0 else 0
     to_send[0].RDLR |= (self.cnt_hca_01 % 16) << 8
     to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_HCA_01, 8)
     self.cnt_hca_01 += 1
