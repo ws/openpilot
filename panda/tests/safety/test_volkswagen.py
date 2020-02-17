@@ -77,7 +77,7 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.safety.set_volkswagen_rt_torque_last(t)
 
   def _speed_msg(self, speed):
-    wheel_speed_scaled = speed / 0.0075
+    wheel_speed_scaled = int(speed / 0.0075)
     to_send = make_msg(0, MSG_ESP_19)
     to_send[0].RDLR = wheel_speed_scaled | (wheel_speed_scaled << 16)
     to_send[0].RDHR = wheel_speed_scaled | (wheel_speed_scaled << 16)
