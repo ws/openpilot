@@ -317,6 +317,25 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
       self.assertTrue(self.safety.safety_tx_hook(self._hca_01_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self.safety.safety_tx_hook(self._hca_01_msg(sign * (MAX_RT_DELTA + 1))))
 
+  def test_torque_measurements(self):
+    self.safety.safety_rx_hook(self._eps_01_msg(50))
+    self.safety.safety_rx_hook(self._eps_01_msg(-50))
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+
+    self.assertEqual(-51, self.safety.get_volkswagen_torque_driver_min())
+    self.assertEqual(51, self.safety.get_volkswagen_torque_driver_max())
+
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+    self.assertEqual(1, self.safety.get_volkswagen_torque_driver_max())
+    self.assertEqual(-51, self.safety.get_volkswagen_torque_driver_min())
+
+    self.safety.safety_rx_hook(self._eps_01_msg(0))
+    self.assertEqual(1, self.safety.get_volkswagen_torque_driver_max())
+    self.assertEqual(-1, self.safety.get_volkswagen_torque_driver_min())
+
   def test_rx_hook(self):
     # checksum checks
     # TODO: Would be ideal to check ESP_19 as well, but it has no checksum
