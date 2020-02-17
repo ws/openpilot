@@ -161,6 +161,39 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.safety.safety_rx_hook(to_push)
     self.assertFalse(self.safety.get_controls_allowed())
 
+  def test_sample_speed(self):
+    self.assertEqual(0, self.safety.get_volkswagen_moving())
+    self.safety.safety_rx_hook(self._speed_msg(100))
+    self.assertEqual(1, self.safety.get_volkswagen_moving())
+
+  def test_prev_brake(self):
+    self.assertFalse(self.safety.get_volkswagen_brake_pressed_prev())
+    self.safety.safety_rx_hook(self._brake_msg(True))
+    self.assertTrue(self.safety.get_volkswagen_brake_pressed_prev())
+
+  def test_disengage_on_brake(self):
+    self.safety.set_controls_allowed(1)
+    self.safety.safety_rx_hook(self._brake_msg(1))
+    self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_allow_brake_at_zero_speed(self):
+    # Brake was already pressed
+    self.safety.safety_rx_hook(self._brake_msg(True))
+    self.safety.set_controls_allowed(1)
+
+    self.safety.safety_rx_hook(self._brake_msg(True))
+    self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.safety_rx_hook(self._brake_msg(False))  # reset no brakes
+
+  def test_not_allow_brake_when_moving(self):
+    # Brake was already pressed
+    self.safety.safety_rx_hook(self._brake_msg(True))
+    self.safety.safety_rx_hook(self._speed_msg(100))
+    self.safety.set_controls_allowed(1)
+
+    self.safety.safety_rx_hook(self._brake_msg(True))
+    self.assertFalse(self.safety.get_controls_allowed())
+
   def test_disengage_on_gas(self):
     self.safety.safety_rx_hook(self._gas_msg(0))
     self.safety.set_controls_allowed(True)
@@ -174,7 +207,6 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.assertTrue(self.safety.get_controls_allowed())
     self.safety.safety_rx_hook(self._gas_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
-
 
   def test_steer_safety_check(self):
     for enabled in [0, 1]:
@@ -255,7 +287,6 @@ class TestVolkswagenSafety(unittest.TestCase):
       self.safety.set_volkswagen_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
       self.assertFalse(self.safety.safety_tx_hook(self._torque_msg((MAX_STEER - MAX_RATE_DOWN + 1) * sign)))
 
-
   def test_realtime_limits(self):
     self.safety.set_controls_allowed(True)
 
@@ -277,7 +308,6 @@ class TestVolkswagenSafety(unittest.TestCase):
       self.safety.set_timer(RT_INTERVAL + 1)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA + 1))))
-
 
   def test_fwd_hook(self):
     buss = list(range(0x0, 0x3))
