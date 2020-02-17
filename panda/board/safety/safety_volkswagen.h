@@ -85,7 +85,7 @@ static uint8_t volkswagen_mqb_compute_crc(CAN_FIFOMailBox_TypeDef *to_push) {
     crc = volkswagen_crc8_lut_8h2f[crc];
   }
 
-  uint8_t counter = volkswagen_mqb_get_counter(to_push);
+  uint8_t counter = volkswagen_get_counter(to_push);
   switch(addr) {
     case MSG_EPS_01:
       crc ^= (uint8_t[]){0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5,0xF5}[counter];
@@ -370,7 +370,7 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Signal: HCA_1.LM_Offsign (direction)
   if (addr == MSG_HCA_1) {
     int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
-    desired_torque = desired_torque * 0.03052  // Scale PQ on-the-wire figure to centi-Nm before checks
+    desired_torque = desired_torque * 0.03052;  // Scale PQ on-the-wire figure to centi-Nm before checks
     int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
     if (sign == 1) {
       desired_torque *= -1;
