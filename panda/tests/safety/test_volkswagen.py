@@ -323,7 +323,7 @@ class TestVolkswagenSafety(unittest.TestCase):
       if msg == MSG_MOTOR_20:
         to_push = self._gas_msg(0)
       self.assertTrue(self.safety.safety_rx_hook(to_push))
-      to_push[0].RDLR ^= 0xFF
+      to_push[0].RDHR ^= 0xFF
       self.assertFalse(self.safety.safety_rx_hook(to_push))
       self.assertFalse(self.safety.get_controls_allowed())
 
