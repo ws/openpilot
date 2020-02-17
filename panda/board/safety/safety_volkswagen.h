@@ -111,8 +111,8 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // Signal: ESP_19.ESP_VL_Radgeschw_02 (front left)
     // Signal: ESP_19.ESP_VR_Radgeschw_02 (front right)
     if ((bus == 0) && (addr == MSG_ESP_19)) {
-      int wheel_speed_fl = GET_BYTE(to_push, 4) | (GET_BYTE(to_push, 5) << 8)
-      int wheel_speed_fr = GET_BYTE(to_push, 6) | (GET_BYTE(to_push, 7) << 8)
+      int wheel_speed_fl = GET_BYTE(to_push, 4) | (GET_BYTE(to_push, 5) << 8);
+      int wheel_speed_fr = GET_BYTE(to_push, 6) | (GET_BYTE(to_push, 7) << 8);
       if (wheel_speed_fl > 0) || (wheel_speed_fr > 0) {
         volkswagen_moving = true;
       } else {
@@ -167,7 +167,7 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   return valid;
 }
 
-static bool volkswagen_steering_valid(int desired_torque) {
+static bool volkswagen_steering_check(int desired_torque) {
   bool violation = false;
   uint32_t ts = TIM2->CNT;
 
