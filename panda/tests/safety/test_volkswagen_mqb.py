@@ -77,6 +77,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.safety.set_volkswagen_desired_torque_last(t)
     self.safety.set_volkswagen_rt_torque_last(t)
 
+  # Wheel speeds
   def _esp_19_msg(self, speed):
     wheel_speed_scaled = int(speed / 0.0075)
     to_send = make_msg(0, MSG_ESP_19)
@@ -84,6 +85,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     to_send[0].RDHR = wheel_speed_scaled | (wheel_speed_scaled << 16)
     return to_send
 
+  # Brake light
   def _esp_05_msg(self, brake):
     to_send = make_msg(0, MSG_ESP_05)
     to_send[0].RDLR = (0x1 << 26) if brake else 0
@@ -92,6 +94,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.cnt_esp_05 += 1
     return to_send
 
+  # Driver steering input torque
   def _eps_01_msg(self, torque):
     to_send = make_msg(0, MSG_EPS_01)
     t = abs(torque)
@@ -103,6 +106,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.cnt_eps_01 += 1
     return to_send
 
+  # openpilot steering output torque
   def _hca_01_msg(self, torque):
     to_send = make_msg(0, MSG_HCA_01)
     t = abs(torque)
@@ -114,6 +118,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.cnt_hca_01 += 1
     return to_send
 
+  # ACC engagement status
   def _tsk_06_msg(self, status):
     to_send = make_msg(0, MSG_TSK_06)
     to_send[0].RDLR = (status & 0x7) << 24
@@ -122,6 +127,7 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.cnt_tsk_06 += 1
     return to_send
 
+  # Driver throttle input
   def _motor_20_msg(self, gas):
     to_send = make_msg(0, MSG_MOTOR_20)
     to_send[0].RDLR = (gas & 0xFF) << 12
@@ -130,7 +136,8 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     self.cnt_motor_20 += 1
     return to_send
 
-  def _button_msg(self, bit):
+  # Cruise control buttons
+  def _gra_acc_01_msg(self, bit):
     to_send = make_msg(2, MSG_GRA_ACC_01)
     to_send[0].RDLR = 1 << bit
     to_send[0].RDLR |= (self.cnt_gra_acc_01 % 16) << 8
@@ -227,12 +234,12 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
     BIT_RESUME = 19
     BIT_SET = 16
     self.safety.set_controls_allowed(0)
-    self.assertTrue(self.safety.safety_tx_hook(self._button_msg(BIT_CANCEL)))
-    self.assertFalse(self.safety.safety_tx_hook(self._button_msg(BIT_RESUME)))
-    self.assertFalse(self.safety.safety_tx_hook(self._button_msg(BIT_SET)))
+    self.assertTrue(self.safety.safety_tx_hook(self._gra_acc_01_msg(BIT_CANCEL)))
+    self.assertFalse(self.safety.safety_tx_hook(self._gra_acc_01_msg(BIT_RESUME)))
+    self.assertFalse(self.safety.safety_tx_hook(self._gra_acc_01_msg(BIT_SET)))
     # do not block resume if we are engaged already
     self.safety.set_controls_allowed(1)
-    self.assertTrue(self.safety.safety_tx_hook(self._button_msg(BIT_RESUME)))
+    self.assertTrue(self.safety.safety_tx_hook(self._gra_acc_01_msg(BIT_RESUME)))
 
   def test_non_realtime_limit_up(self):
     self.safety.set_volkswagen_torque_driver(0, 0)
@@ -312,6 +319,9 @@ class TestVolkswagenMqbSafety(unittest.TestCase):
 
   def test_rx_hook(self):
     # checksum checks
+    # TODO: Would be ideal to check ESP_19 as well, but it has no checksum
+    # or counter, and I'm not sure if we can easily validate Panda's simple
+    # temporal reception-rate check here.
     for msg in [MSG_EPS_01, MSG_ESP_05, MSG_TSK_06, MSG_MOTOR_20]:
       self.safety.set_controls_allowed(1)
       if msg == MSG_EPS_01:
