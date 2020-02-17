@@ -65,7 +65,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   # Driver steering input torque
   def _eps_1_msg(self, torque):
     to_send = make_msg(0, MSG_EPS_1)
-    t = abs(torque) >> 6  # DBC scale from centi-Nm to PQ network (approximated)
+    t = abs(torque) << 6  # DBC scale from centi-Nm to PQ network (approximated)
     to_send[0].RDLR = ((t & 0x3FF) << 16)
     if torque < 0:
       to_send[0].RDLR |= 0x1 << 26
