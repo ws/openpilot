@@ -113,6 +113,14 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.cnt_hca_01 += 1
     return to_send
 
+  def _drivetrain_coordinator_msg(self, status):
+    to_send = make_msg(0, MSG_TSK_06)
+    to_send[0].RDLR = (status & 0x7) << 24
+    to_send[0].RDLR |= (self.cnt_tsk_06 % 16) << 8
+    to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_TSK_06, 8)
+    self.cnt_tsk_06 += 1
+    return to_send
+
   def _gas_msg(self, gas):
     to_send = make_msg(0, MSG_MOTOR_20)
     to_send[0].RDLR = (gas & 0xFF) << 12
@@ -144,21 +152,13 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_enable_control_allowed_from_cruise(self):
-    to_push = make_msg(0, MSG_TSK_06)
-    to_push[0].RDLR = 0x3 << 24
-    to_push[0].RDLR |= (self.cnt_tsk_06 % 16) << 8
-    to_push[0].RDLR |= volkswagen_mqb_crc(to_push[0], MSG_TSK_06, 8)
-    self.cnt_tsk_06 += 1
-    self.safety.safety_rx_hook(to_push)
+    self.safety.set_controls_allowed(0)
+    self.safety.safety_rx_hook(self._drivetrain_coordinator_msg(3))
     self.assertTrue(self.safety.get_controls_allowed())
 
   def test_disable_control_allowed_from_cruise(self):
-    to_push = make_msg(0, MSG_TSK_06)
-    to_push[0].RDLR |= (self.cnt_tsk_06 % 16) << 8
-    to_push[0].RDLR |= volkswagen_mqb_crc(to_push[0], MSG_TSK_06, 8)
-    self.cnt_tsk_06 += 1
     self.safety.set_controls_allowed(1)
-    self.safety.safety_rx_hook(to_push)
+    self.safety.safety_rx_hook(self._drivetrain_coordinator_msg(1))
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_sample_speed(self):
@@ -308,6 +308,52 @@ class TestVolkswagenSafety(unittest.TestCase):
       self.safety.set_timer(RT_INTERVAL + 1)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA + 1))))
+
+  def test_rx_hook(self):
+    # checksum checks
+    for msg in [MSG_EPS_01, MSG_ESP_05, MSG_TSK_06, MSG_MOTOR_20]:
+      self.safety.set_controls_allowed(1)
+      if msg == MSG_EPS_01:
+        to_push = self._torque_driver_msg(0)
+      if msg == MSG_ESP_05:
+        to_push = self._brake_msg(0)
+      if msg == MSG_TSK_06:
+        to_push = self._drivetrain_coordinator_msg(3)
+      if msg == MSG_MOTOR_20:
+        to_push = self._gas_msg(0)
+      self.assertTrue(self.safety.safety_rx_hook(to_push))
+      to_push[0].RDLR ^= 0xFF
+      self.assertFalse(self.safety.safety_rx_hook(to_push))
+      self.assertFalse(self.safety.get_controls_allowed())
+
+    # counter
+    # reset wrong_counters to zero by sending valid messages
+    for i in range(MAX_WRONG_COUNTERS + 1):
+      self.cnt_eps_01 = 0
+      self.cnt_esp_05 = 0
+      self.cnt_tsk_06 = 0
+      self.cnt_motor_20 = 0
+      if i < MAX_WRONG_COUNTERS:
+        self.safety.set_controls_allowed(1)
+        self.safety.safety_rx_hook(self._torque_driver_msg(0))
+        self.safety.safety_rx_hook(self._brake_msg(0))
+        self.safety.safety_rx_hook(self._drivetrain_coordinator_msg(3))
+        self.safety.safety_rx_hook(self._gas_msg(0))
+      else:
+        self.assertFalse(self.safety.safety_rx_hook(self._torque_driver_msg(0)))
+        self.assertFalse(self.safety.safety_rx_hook(self._brake_msg(0)))
+        self.assertFalse(self.safety.safety_rx_hook(self._drivetrain_coordinator_msg(3)))
+        self.assertFalse(self.safety.safety_rx_hook(self._gas_msg(0)))
+        self.assertFalse(self.safety.get_controls_allowed())
+
+    # restore counters for future tests with a couple of good messages
+    for i in range(2):
+      self.safety.set_controls_allowed(1)
+      self.safety.safety_rx_hook(self._torque_driver_msg(0))
+      self.safety.safety_rx_hook(self._brake_msg(0))
+      self.safety.safety_rx_hook(self._drivetrain_coordinator_msg(3))
+      self.safety.safety_rx_hook(self._gas_msg(0))
+    self.assertTrue(self.safety.get_controls_allowed())
 
   def test_fwd_hook(self):
     buss = list(range(0x0, 0x3))
