@@ -45,9 +45,9 @@ const int VOLKSWAGEN_PQ_TX_MSGS_LEN = sizeof(VOLKSWAGEN_PQ_TX_MSGS) / sizeof(VOL
 
 AddrCheckStruct volkswagen_pq_rx_checks[] = {
   {.addr = {MSG_EPS_1},    .bus = 0, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
-  {.addr = {MSG_MOTOR_1}   .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
-  {.addr = {MSG_MOTOR_2}   .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
-  {.addr = {MSG_BREMSE_3}  .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
+  {.addr = {MSG_MOTOR_1},  .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
+  {.addr = {MSG_MOTOR_2},  .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
+  {.addr = {MSG_BREMSE_3}, .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
 };
 const int VOLKSWAGEN_PQ_RX_CHECKS_LEN = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]);
 
