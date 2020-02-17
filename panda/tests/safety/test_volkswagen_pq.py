@@ -110,7 +110,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     test_spam_can_buses(self, TX_MSGS)
 
   def test_relay_malfunction(self):
-    test_relay_malfunction(self, MSG_HCA_01)
+    test_relay_malfunction(self, MSG_HCA_1)
 
   def test_prev_gas(self):
     for g in range(0, 256):
