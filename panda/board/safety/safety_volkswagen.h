@@ -370,7 +370,7 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Signal: HCA_1.LM_Offsign (direction)
   if (addr == MSG_HCA_1) {
     int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
-    int desired_torque >>= 6;  // DBC scale from PQ network to centi-Nm
+    int desired_torque = desired_torque >> 6;  // DBC scale from PQ network to centi-Nm
     int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
     if (sign == 1) {
       desired_torque *= -1;
