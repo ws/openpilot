@@ -36,7 +36,7 @@ def volkswagen_pq_checksum(msg, addr, len_msg):
   msg_bytes = msg.RDLR.to_bytes(4, 'little') + msg.RDHR.to_bytes(4, 'little')
   msg_bytes = msg_bytes[1:len_msg]
 
-  checksum = b'\x00'
+  checksum = 0
   for i in msg_bytes:
     checksum ^= i
   return checksum
