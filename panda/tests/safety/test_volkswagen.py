@@ -95,7 +95,8 @@ class TestVolkswagenSafety(unittest.TestCase):
     to_send = make_msg(0, MSG_EPS_01)
     t = abs(torque)
     to_send[0].RDHR = ((t & 0x1FFF) << 8)
-    to_send[0].RDHR |= (0x1 << 23) if torque < 0 else 0
+    if torque < 0:
+      to_send[0].RDHR |= 0x1 << 23
     to_send[0].RDLR |= (self.cnt_eps_01 % 16) << 8
     to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_EPS_01, 8)
     self.cnt_eps_01 += 1
@@ -105,7 +106,8 @@ class TestVolkswagenSafety(unittest.TestCase):
     to_send = make_msg(0, MSG_HCA_01)
     t = abs(torque)
     to_send[0].RDLR = (t & 0xFFF) << 16
-    to_send[0].RDHR |= (0x1 << 31) if torque < 0 else 0
+    if torque < 0:
+      to_send[0].RDLR |= 0x1 << 31
     to_send[0].RDLR |= (self.cnt_hca_01 % 16) << 8
     to_send[0].RDLR |= volkswagen_mqb_crc(to_send[0], MSG_HCA_01, 8)
     self.cnt_hca_01 += 1
