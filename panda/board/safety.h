@@ -205,6 +205,7 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_SUBARU, &subaru_hooks},
   {SAFETY_MAZDA, &mazda_hooks},
   {SAFETY_VOLKSWAGEN_MQB, &volkswagen_mqb_hooks},
+  {SAFETY_VOLKSWAGEN_PQ, &volkswagen_pq_hooks},
   {SAFETY_NOOUTPUT, &nooutput_hooks},
 #ifdef ALLOW_DEBUG
   {SAFETY_CADILLAC, &cadillac_hooks},
