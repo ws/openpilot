@@ -25,21 +25,24 @@ static int nooutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
 
 static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // Volkswagen community port: Advanced Virtual Relay Technology!
-  // Make Panda fully transparent from bus 0->2 and bus 2->0 if not otherwise
-  // instructed by EON/OP, returning the car to stock behavior under NOOUTPUT.
+  // Make White/Grey Panda fully transparent from bus 0->2 and bus 2->0 if not
+  // otherwise instructed by EON/OP, returning the car to stock behavior under
+  // SILENT or NOOUTPUT mode.
   UNUSED(to_fwd);
   int bus_fwd = -1;
 
-  switch (bus_num) {
-    case 0:
-      bus_fwd = 2;
-      break;
-    case 2:
-      bus_fwd = 0;
-      break;
-    default:
-      bus_fwd = -1;
-      break;
+  if(!board_has_relay()) {
+    switch (bus_num) {
+      case 0:
+        bus_fwd = 2;
+        break;
+      case 2:
+        bus_fwd = 0;
+        break;
+      default:
+        bus_fwd = -1;
+        break;
+    }
   }
   return bus_fwd;
 }
