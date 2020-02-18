@@ -71,6 +71,7 @@ uint8_t hw_type = HW_TYPE_UNKNOWN;
 #define PANDA
 #define NULL ((void*)0)
 #define static
+#include "board.h"
 #include "safety.h"
 
 void set_controls_allowed(bool c){
