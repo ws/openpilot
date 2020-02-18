@@ -57,6 +57,10 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("GRA_ButtonTypeInfo", "GRA_ACC_01", 0),      # unknown related to stalk type
     ("GRA_Typ468", "GRA_ACC_01", 0),              # Set/Resume button behavior as overloaded coast/accel??
     ("COUNTER", "GRA_ACC_01", 0),                 # GRA_ACC_01 CAN message counter
+    ("ACC_Status_ACC", "ACC_06", 0),  # ACC engagement status
+    ("ACC_Typ", "ACC_06", 0),  # ACC type (follow to stop, stop&go)
+    ("ACC_Anhalten", "ACC_06", 0),  # ACC standstill flag
+    ("SetSpeed", "ACC_02", 0),  # ACC set speed
   ]
 
   checks = [
@@ -76,6 +80,8 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("Kombi_01", 2),      # From J285 Instrument cluster
     ("Motor_16", 2),      # From J623 Engine control module
     ("Einheiten_01", 1),  # From J??? not known if gateway, cluster, or BCM
+    ("ACC_06", 50),  # From J428 ACC radar control module
+    ("ACC_02", 17),  # From J428 ACC radar control module
   ]
 
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.pt)
@@ -85,16 +91,10 @@ def get_mqb_cam_can_parser(CP, canbus):
   signals = [
     # sig_name, sig_address, default
     ("Kombi_Lamp_Green", "LDW_02", 0),            # Lane Assist status LED
-    ("ACC_Status_ACC", "ACC_06", 0),              # ACC engagement status
-    ("ACC_Typ", "ACC_06", 0),                     # ACC type (follow to stop, stop&go)
-    ("ACC_Anhalten", "ACC_06", 0),                # ACC standstill flag
-    ("SetSpeed", "ACC_02", 0),                    # ACC set speed
   ]
 
   checks = [
     # sig_address, frequency
-    ("ACC_06", 50),       # From J428 ACC radar control module
-    ("ACC_02", 17),       # From J428 ACC radar control module
     ("LDW_02", 10)        # From R242 Driver assistance camera
   ]
 
@@ -195,9 +195,9 @@ class CarState():
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    self.accSetSpeed = cam_cp.vl["ACC_02"]['SetSpeed']
+    self.accSetSpeed = pt_cp.vl["ACC_02"]['SetSpeed']
     if self.accSetSpeed > 90: self.accSetSpeed = 0
-    self.accStandstill = bool(cam_cp.vl["ACC_06"]['ACC_Anhalten'])
+    self.accStandstill = bool(pt_cp.vl["ACC_06"]['ACC_Anhalten'])
 
     # Update control button states for turn signals and ACC controls.
     self.buttonStates["leftBlinker"] = bool(pt_cp.vl["Gateway_72"]['BH_Blinker_li'])
