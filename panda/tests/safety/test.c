@@ -47,6 +47,11 @@ TIM_TypeDef *TIM2 = &timer;
 // from main_declarations.h
 uint8_t hw_type = HW_TYPE_UNKNOWN;
 
+// from board.h
+bool board_has_relay(void) {
+  return ((hw_type == HW_TYPE_BLACK_PANDA) || (hw_type == HW_TYPE_UNO));
+}
+
 // from config.h
 #define MIN(a,b)                                \
   ({ __typeof__ (a) _a = (a);                   \
@@ -71,7 +76,6 @@ uint8_t hw_type = HW_TYPE_UNKNOWN;
 #define PANDA
 #define NULL ((void*)0)
 #define static
-#include "board.h"
 #include "safety.h"
 
 void set_controls_allowed(bool c){
