@@ -31,7 +31,7 @@ AddrCheckStruct volkswagen_mqb_rx_checks[] = {
 const int VOLKSWAGEN_MQB_RX_CHECKS_LEN = sizeof(volkswagen_mqb_rx_checks) / sizeof(volkswagen_mqb_rx_checks[0]);
 
 // Safety-relevant CAN messages for the Volkswagen PQ35/PQ46/NMS platforms
-#define MSG_EPS_1       0x0D0   // RX from EPS, for steering angle and driver steering torque
+#define MSG_LENKHILFE_3 0x0D0   // RX from EPS, for steering angle and driver steering torque
 #define MSG_HCA_1       0x0D2   // TX by OP, Heading Control Assist steering torque
 #define MSG_MOTOR_1     0x280   // RX from ECU, for driver throttle input
 #define MSG_MOTOR_2     0x288   // RX from ECU, for CC state and brake switch state
@@ -44,10 +44,10 @@ const AddrBus VOLKSWAGEN_PQ_TX_MSGS[] = {{MSG_HCA_1, 0}, {MSG_GRA_NEU, 0}, {MSG_
 const int VOLKSWAGEN_PQ_TX_MSGS_LEN = sizeof(VOLKSWAGEN_PQ_TX_MSGS) / sizeof(VOLKSWAGEN_PQ_TX_MSGS[0]);
 
 AddrCheckStruct volkswagen_pq_rx_checks[] = {
-  {.addr = {MSG_EPS_1},    .bus = 0, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
-  {.addr = {MSG_MOTOR_1},  .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
-  {.addr = {MSG_MOTOR_2},  .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
-  {.addr = {MSG_BREMSE_3}, .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
+  {.addr = {MSG_LENKHILFE_3}, .bus = 0, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
+  {.addr = {MSG_MOTOR_1},     .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
+  {.addr = {MSG_MOTOR_2},     .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
+  {.addr = {MSG_BREMSE_3},    .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
 };
 const int VOLKSWAGEN_PQ_RX_CHECKS_LEN = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]);
 
@@ -233,9 +233,9 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
 
     // Update driver input torque samples
-    // Signal: EPS_1.Driver_Torque (absolute torque)
-    // Signal: EPS_1.Driver_Torque_Sign (direction)
-    if ((bus == 0) && (addr == MSG_EPS_1)) {
+    // Signal: Lenkhilfe_3.LH3_LM (absolute torque)
+    // Signal: Lenkhilfe_3.LH3_LMSign (direction)
+    if ((bus == 0) && (addr == MSG_LENKHILFE_3)) {
       int torque_driver_new = GET_BYTE(to_push, 2) | ((GET_BYTE(to_push, 3) & 0x3) << 8);
       int sign = (GET_BYTE(to_push, 3) & 0x4) >> 2;
       if (sign == 1) {

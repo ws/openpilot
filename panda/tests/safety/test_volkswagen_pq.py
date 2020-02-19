@@ -15,13 +15,13 @@ RT_INTERVAL = 250000
 DRIVER_TORQUE_ALLOWANCE = 80
 DRIVER_TORQUE_FACTOR = 3
 
-MSG_EPS_1 = 0x0D0       # RX from EPS, for steering angle and driver steering torque
-MSG_HCA_1 = 0x0D2       # TX by OP, Heading Control Assist steering torque
-MSG_MOTOR_1 = 0x280     # RX from ECU, for driver throttle input
-MSG_MOTOR_2 = 0x288     # RX from ECU, for CC state and brake switch state
-MSG_GRA_NEU = 0x38A     # TX by OP, ACC control buttons for cancel/resume
-MSG_BREMSE_3 = 0x4A0    # RX from ABS, for wheel speeds
-MSG_LDW_1 = 0x5BE       # TX by OP, Lane line recognition and text alerts
+MSG_LENKHILFE_3 = 0x0D0  # RX from EPS, for steering angle and driver steering torque
+MSG_HCA_1 = 0x0D2        # TX by OP, Heading Control Assist steering torque
+MSG_MOTOR_1 = 0x280      # RX from ECU, for driver throttle input
+MSG_MOTOR_2 = 0x288      # RX from ECU, for CC state and brake switch state
+MSG_GRA_NEU = 0x38A      # TX by OP, ACC control buttons for cancel/resume
+MSG_BREMSE_3 = 0x4A0     # RX from ABS, for wheel speeds
+MSG_LDW_1 = 0x5BE        # TX by OP, Lane line recognition and text alerts
 
 # Transmit of GRA_Neu is allowed on bus 0 and 2 to keep compatibility with gateway and camera integration
 TX_MSGS = [[MSG_HCA_1, 0], [MSG_GRA_NEU, 0], [MSG_GRA_NEU, 2], [MSG_LDW_1, 0]]
@@ -47,7 +47,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     cls.safety = libpandasafety_py.libpandasafety
     cls.safety.set_safety_hooks(Panda.SAFETY_VOLKSWAGEN_PQ, 0)
     cls.safety.init_tests_volkswagen()
-    cls.cnt_eps_1 = 0
+    cls.cnt_lenkhilfe_3 = 0
     cls.cnt_hca_1 = 0
 
   def _set_prev_torque(self, t):
@@ -64,14 +64,14 @@ class TestVolkswagenPqSafety(unittest.TestCase):
 
   # Driver steering input torque
   def _eps_1_msg(self, torque):
-    to_send = make_msg(0, MSG_EPS_1)
+    to_send = make_msg(0, MSG_LENKHILFE_3)
     t = abs(torque)
     to_send[0].RDLR = ((t & 0x3FF) << 16)
     if torque < 0:
       to_send[0].RDLR |= 0x1 << 26
-    to_send[0].RDLR |= (self.cnt_eps_1 % 16) << 8
-    to_send[0].RDLR |= volkswagen_pq_checksum(to_send[0], MSG_EPS_1, 8)
-    self.cnt_eps_1 += 1
+    to_send[0].RDLR |= (self.cnt_lenkhilfe_3 % 16) << 8
+    to_send[0].RDLR |= volkswagen_pq_checksum(to_send[0], MSG_LENKHILFE_3, 8)
+    self.cnt_lenkhilfe_3 += 1
     return to_send
 
   # openpilot steering output torque
@@ -302,9 +302,9 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     # TODO: Would be ideal to check non-checksum non-counter messages as well,
     # but I'm not sure if we can easily validate Panda's simple temporal
     # reception-rate check here.
-    for msg in [MSG_EPS_1]:
+    for msg in [MSG_LENKHILFE_3]:
       self.safety.set_controls_allowed(1)
-      if msg == MSG_EPS_1:
+      if msg == MSG_LENKHILFE_3:
         to_push = self._eps_1_msg(0)
       self.assertTrue(self.safety.safety_rx_hook(to_push))
       to_push[0].RDHR ^= 0xFF
@@ -314,7 +314,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     # counter
     # reset wrong_counters to zero by sending valid messages
     for i in range(MAX_WRONG_COUNTERS + 1):
-      self.cnt_eps_1 = 0
+      self.cnt_lenkhilfe_3 = 0
       if i < MAX_WRONG_COUNTERS:
         self.safety.set_controls_allowed(1)
         self.safety.safety_rx_hook(self._eps_1_msg(0))
