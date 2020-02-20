@@ -1104,7 +1104,7 @@ BO_ 978 Lenkhilfe_2: 8 XXX
  SG_ LH2_StatEPS_PLA : 24|4@1+ (1,0) [0|15] "" XXX
  SG_ LH2_aktLenkeingriff : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ LH2_PLA_Err : 48|4@1+ (1,0) [0|15] "" XXX
- SG_ LH2_PLA_Abbr: 52|4@1+ (1,0) [0|15] "" XXX
+ SG_ LH2_PLA_Abbr : 52|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 210 HCA_1: 5 XXX
  SG_ HCA_Checksumme : 0|8@1+ (1,0) [0|15] "" XXX
@@ -1131,7 +1131,7 @@ BO_ 1490 VIN_1: 8 XXX
 CM_ SG_ 210 LM_Offset "centiNewton-meters for ease of calculation without FP math in Panda";
 CM_ SG_ 210 Vib_Amp "Steering wheel haptic, amplitude";
 CM_ SG_ 210 Vib_Freq "Steering wheel haptic, frequency";
-CM_ SG_ 1386 XXACCSetPoint "255=unset";
+CM_ SG_ 1386 ACA_V_Wunsch "255=unset";
 CM_ SG_ 1470 LDW_Direction "0=right,1=left";
 CM_ SG_ 1470 XX_DLCORTLC1 "Might be DLC or TLC";
 CM_ SG_ 1470 XX_DLCORTLC2 "Might be DLC or TLC, might have wrong size";
