@@ -156,11 +156,9 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if ((bus == 0) && (addr == MSG_ESP_19)) {
       int wheel_speed_fl = GET_BYTE(to_push, 4) | (GET_BYTE(to_push, 5) << 8);
       int wheel_speed_fr = GET_BYTE(to_push, 6) | (GET_BYTE(to_push, 7) << 8);
-      if ((wheel_speed_fl > 0) || (wheel_speed_fr > 0)) {
-        volkswagen_moving = true;
-      } else {
-        volkswagen_moving = false;
-      }
+      // Check for average front speed in excess of 0.3m/s, 1.08km/h
+      // DBC speed scale 0.0075: 0.3m/s = 144, sum both wheels to compare
+      volkswagen_moving = wheel_speed_fl + wheel_speed_fr > 288
     }
 
     // Update driver input torque samples
@@ -225,11 +223,9 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if ((bus == 0) && (addr == MSG_BREMSE_3)) {
       int wheel_speed_fl = (GET_BYTE(to_push, 0) | (GET_BYTE(to_push, 1) << 8)) >> 1;
       int wheel_speed_fr = (GET_BYTE(to_push, 2) | (GET_BYTE(to_push, 3) << 8)) >> 1;
-      if ((wheel_speed_fl > 0) || (wheel_speed_fr > 0)) {
-        volkswagen_moving = true;
-      } else {
-        volkswagen_moving = false;
-      }
+      // Check for average front speed in excess of 0.3m/s, 1.08km/h
+      // DBC speed scale 0.01: 0.3m/s = 108, sum both wheels to compare
+      volkswagen_moving = wheel_speed_fl + wheel_speed_fr > 216
     }
 
     // Update driver input torque samples
